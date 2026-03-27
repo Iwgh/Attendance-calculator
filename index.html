@@ -6,7 +6,7 @@
   <title>출결 계산기</title>
   <style>
     :root {
-      --bg: #0f172a;
+      --bg: #0b1220;
       --panel: #111827;
       --card: #1f2937;
       --line: #374151;
@@ -22,12 +22,12 @@
     body {
       margin: 0;
       font-family: "Segoe UI", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
-      background: linear-gradient(180deg, #0b1220 0%, var(--bg) 100%);
+      background: linear-gradient(180deg, #0a0f1c 0%, var(--bg) 100%);
       color: var(--text);
     }
 
     .wrap {
-      max-width: 1100px;
+      max-width: 920px;
       margin: 0 auto;
       padding: 24px;
     }
@@ -39,23 +39,22 @@
 
     .sub {
       color: var(--muted);
-      margin-bottom: 24px;
+      margin-bottom: 20px;
       line-height: 1.6;
     }
 
     .grid {
       display: grid;
-      grid-template-columns: 1.15fr 0.85fr;
-      gap: 20px;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
     }
 
     .card {
-      background: rgba(31, 41, 55, 0.9);
+      background: rgba(31, 41, 55, 0.95);
       border: 1px solid rgba(255,255,255,0.08);
       border-radius: 18px;
       padding: 20px;
       box-shadow: 0 10px 30px rgba(0,0,0,0.22);
-      backdrop-filter: blur(8px);
     }
 
     .section-title {
@@ -66,7 +65,7 @@
 
     .fields {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-columns: 1fr 1fr;
       gap: 14px;
     }
 
@@ -105,6 +104,12 @@
       line-height: 1.5;
     }
 
+    .inline-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
     .buttons {
       display: flex;
       gap: 10px;
@@ -134,16 +139,15 @@
 
     .results {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-columns: 1fr;
       gap: 12px;
-      margin-top: 16px;
     }
 
     .result-box {
       background: #0b1220;
       border: 1px solid var(--line);
       border-radius: 14px;
-      padding: 14px;
+      padding: 16px;
     }
 
     .result-label {
@@ -153,12 +157,10 @@
     }
 
     .result-value {
-      font-size: 22px;
+      font-size: 24px;
       font-weight: 800;
       word-break: break-word;
     }
-
-    .result-box.full { grid-column: 1 / -1; }
 
     .status {
       margin-top: 14px;
@@ -173,18 +175,6 @@
     .status.warn { background: rgba(251, 191, 36, 0.08); color: #fef3c7; border-color: rgba(251,191,36,0.22); }
     .status.danger { background: rgba(248, 113, 113, 0.08); color: #fee2e2; border-color: rgba(248,113,113,0.22); }
 
-    .formula {
-      font-family: Consolas, monospace;
-      font-size: 13px;
-      color: #cbd5e1;
-      background: #0b1220;
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      padding: 12px;
-      line-height: 1.7;
-      white-space: pre-wrap;
-    }
-
     .footer-note {
       margin-top: 12px;
       color: var(--muted);
@@ -193,9 +183,7 @@
     }
 
     @media (max-width: 860px) {
-      .grid,
-      .fields,
-      .results {
+      .grid, .fields, .inline-grid {
         grid-template-columns: 1fr;
       }
     }
@@ -205,8 +193,8 @@
   <div class="wrap">
     <h1>출결 계산기</h1>
     <div class="sub">
-      기본 출석률 계산, 40일/40시간 미만 계산, 중간편입 계산을 한 번에 처리하는 버전이다.<br>
-      지각 3회 = 결석 1회도 함께 환산한다.
+      단기과정은 시간 기준, 장기과정은 일수 기준으로 계산한다.<br>
+      결과는 출석률과 수료 가능 여부만 간단하게 보여준다.
     </div>
 
     <div class="grid">
@@ -214,67 +202,65 @@
         <h2 class="section-title">입력</h2>
         <div class="fields">
           <div class="field full">
-            <label for="mode">계산 방식</label>
-            <select id="mode">
-              <option value="general">일반 과정 (A / B × 100)</option>
-              <option value="short">40일 미만 또는 40시간 미만 (A / 소정훈련시간 × 100)</option>
-              <option value="transfer">중간편입 (A / (B - C) × 100)</option>
+            <label for="courseType">과정 구분</label>
+            <select id="courseType">
+              <option value="shortCourse">단기과정 (시간 기준)</option>
+              <option value="longCourse">장기과정 (일수 기준)</option>
             </select>
           </div>
 
-          <div class="field">
-            <label for="attendanceHours">출석시간 A</label>
-            <input id="attendanceHours" type="number" min="0" step="0.01" value="0" />
-            <div class="hint">실제 인정되는 출석시간</div>
+          <div class="field full">
+            <label for="attendanceMode">출석 계산 유형</label>
+            <select id="attendanceMode">
+              <option value="over40">40일 이상</option>
+              <option value="under40">40일 미만</option>
+              <option value="transfer">중간편입</option>
+            </select>
           </div>
 
-          <div class="field">
-            <label for="totalHours">총 훈련시간 B</label>
-            <input id="totalHours" type="number" min="0" step="0.01" value="0" />
-            <div class="hint">전체 기준 훈련시간</div>
+          <div class="field full">
+            <label for="totalTrainingHours">총 훈련시간</label>
+            <input id="totalTrainingHours" type="number" min="0" step="0.01" value="0" />
+            <div class="hint">전체 과정의 총 훈련시간</div>
           </div>
 
-          <div class="field">
-            <label for="scheduledHours">소정훈련시간</label>
-            <input id="scheduledHours" type="number" min="0" step="0.01" value="0" />
-            <div class="hint">40일/40시간 미만일 때 사용</div>
+          <div class="field full" id="totalTrainingDaysField" style="display:none;">
+            <label for="totalTrainingDays">총 훈련일수</label>
+            <input id="totalTrainingDays" type="number" min="0" step="1" value="0" />
+            <div class="hint">장기과정일 때 사용</div>
           </div>
 
-          <div class="field">
+          <div class="field full" id="excludedHoursField" style="display:none;">
             <label for="excludedHours">제외시간 C</label>
             <input id="excludedHours" type="number" min="0" step="0.01" value="0" />
-            <div class="hint">중간편입 시 편입 전 제외시간</div>
+            <div class="hint">중간편입일 때만 사용</div>
           </div>
 
-          <div class="field">
-            <label for="absenceHours">결석시간</label>
-            <input id="absenceHours" type="number" min="0" step="0.01" value="0" />
-            <div class="hint">순수 결석시간 합계</div>
+          <div class="field full">
+            <label>현재 결석시간</label>
+            <div class="inline-grid">
+              <input id="absenceHours" type="number" min="0" step="1" value="0" placeholder="시간" />
+              <input id="absenceMinutes" type="number" min="0" max="59" step="1" value="0" placeholder="분" />
+            </div>
+            <div class="hint">결석한 총 시간을 시간/분으로 입력</div>
           </div>
 
-          <div class="field">
-            <label for="lateCount">지각 횟수</label>
-            <input id="lateCount" type="number" min="0" step="1" value="0" />
-            <div class="hint">지각 3회 = 결석 1회로 환산</div>
-          </div>
-
-          <div class="field">
+          <div class="field full">
             <label for="absenceUnitHours">결석 1회당 시간</label>
-            <input id="absenceUnitHours" type="number" min="0" step="0.01" value="1" />
-            <div class="hint">지각 3회 환산 시 곱해줄 시간. 모르면 1로 두면 됨</div>
+            <input id="absenceUnitHours" type="number" min="0" step="0.01" value="8" />
+            <div class="hint">장기과정에서 결석시간을 결석일수로 환산할 때 사용</div>
           </div>
 
-          <div class="field">
+          <div class="field full">
             <label for="warningThreshold">경고 기준 출석률(%)</label>
             <input id="warningThreshold" type="number" min="0" max="100" step="0.01" value="80" />
-            <div class="hint">예: 80 입력 시 80% 미만이면 경고</div>
+            <div class="hint">기본값 80%</div>
           </div>
         </div>
 
         <div class="buttons">
           <button class="primary" id="calcBtn">계산하기</button>
           <button class="secondary" id="resetBtn">초기화</button>
-          <button class="secondary" id="copyBtn">결과 복사</button>
         </div>
       </section>
 
@@ -282,34 +268,18 @@
         <h2 class="section-title">결과</h2>
         <div class="results">
           <div class="result-box">
-            <div class="result-label">적용 공식</div>
-            <div class="result-value" id="formulaName">-</div>
-          </div>
-          <div class="result-box">
             <div class="result-label">출석률</div>
             <div class="result-value" id="attendanceRate">-</div>
           </div>
           <div class="result-box">
-            <div class="result-label">지각 환산 결석횟수</div>
-            <div class="result-value" id="convertedLateAbsence">-</div>
-          </div>
-          <div class="result-box">
-            <div class="result-label">총 결석 환산시간</div>
-            <div class="result-value" id="totalConvertedAbsenceHours">-</div>
-          </div>
-          <div class="result-box full">
-            <div class="result-label">사용된 분모</div>
-            <div class="result-value" id="denominatorValue">-</div>
-          </div>
-          <div class="result-box full">
-            <div class="result-label">상세 계산식</div>
-            <div class="formula" id="formulaText">-</div>
+            <div class="result-label">수료 가능 여부</div>
+            <div class="result-value" id="completionResult">-</div>
           </div>
         </div>
 
         <div id="statusBox" class="status warn">값을 입력하고 계산하기를 누르면 결과가 나온다.</div>
         <div class="footer-note">
-          소수점은 둘째 자리에서 반올림해서 표시한다. 내부 계산도 같은 기준으로 맞춘다.
+          단기과정은 총 훈련시간 대비 결석시간으로 계산하고, 장기과정은 결석시간을 결석일수로 환산해서 계산한다.
         </div>
       </section>
     </div>
@@ -319,25 +289,22 @@
     const $ = (id) => document.getElementById(id);
 
     const els = {
-      mode: $("mode"),
-      attendanceHours: $("attendanceHours"),
-      totalHours: $("totalHours"),
-      scheduledHours: $("scheduledHours"),
+      courseType: $("courseType"),
+      attendanceMode: $("attendanceMode"),
+      totalTrainingHours: $("totalTrainingHours"),
+      totalTrainingDays: $("totalTrainingDays"),
+      totalTrainingDaysField: $("totalTrainingDaysField"),
       excludedHours: $("excludedHours"),
+      excludedHoursField: $("excludedHoursField"),
       absenceHours: $("absenceHours"),
-      lateCount: $("lateCount"),
+      absenceMinutes: $("absenceMinutes"),
       absenceUnitHours: $("absenceUnitHours"),
       warningThreshold: $("warningThreshold"),
-      formulaName: $("formulaName"),
       attendanceRate: $("attendanceRate"),
-      convertedLateAbsence: $("convertedLateAbsence"),
-      totalConvertedAbsenceHours: $("totalConvertedAbsenceHours"),
-      denominatorValue: $("denominatorValue"),
-      formulaText: $("formulaText"),
+      completionResult: $("completionResult"),
       statusBox: $("statusBox"),
       calcBtn: $("calcBtn"),
       resetBtn: $("resetBtn"),
-      copyBtn: $("copyBtn"),
     };
 
     function num(value) {
@@ -353,133 +320,98 @@
       return round2(value).toLocaleString("ko-KR", { maximumFractionDigits: 2, minimumFractionDigits: 0 });
     }
 
-    function getModeLabel(mode) {
-      switch (mode) {
-        case "general": return "일반 과정";
-        case "short": return "40일 미만 / 40시간 미만";
-        case "transfer": return "중간편입";
-        default: return "-";
-      }
-    }
-
-    function calculate() {
-      const mode = els.mode.value;
-      const A = num(els.attendanceHours.value);
-      const B = num(els.totalHours.value);
-      const scheduled = num(els.scheduledHours.value);
-      const C = num(els.excludedHours.value);
-      const absenceHours = num(els.absenceHours.value);
-      const lateCount = Math.max(0, Math.floor(num(els.lateCount.value)));
-      const absenceUnitHours = num(els.absenceUnitHours.value);
-      const warningThreshold = num(els.warningThreshold.value);
-
-      let denominator = 0;
-      let formulaLabel = "";
-      let formulaText = "";
-
-      if (mode === "general") {
-        denominator = B;
-        formulaLabel = "A / B × 100";
-        formulaText = `일반 과정\n출석률 = A / B × 100\n= ${formatNum(A)} / ${formatNum(B)} × 100`;
-      } else if (mode === "short") {
-        denominator = scheduled;
-        formulaLabel = "A / 소정훈련시간 × 100";
-        formulaText = `40일 미만 또는 40시간 미만\n출석률 = A / 소정훈련시간 × 100\n= ${formatNum(A)} / ${formatNum(scheduled)} × 100`;
-      } else {
-        denominator = B - C;
-        formulaLabel = "A / (B - C) × 100";
-        formulaText = `중간편입\n출석률 = A / (B - C) × 100\n= ${formatNum(A)} / (${formatNum(B)} - ${formatNum(C)}) × 100\n= ${formatNum(A)} / ${formatNum(denominator)} × 100`;
-      }
-
-      if (denominator <= 0) {
-        renderError("분모가 0 이하라서 계산할 수 없다. 총 훈련시간, 소정훈련시간, 제외시간을 다시 확인해야 한다.");
-        return;
-      }
-
-      const attendanceRate = round2((A / denominator) * 100);
-      const lateAbsenceCount = Math.floor(lateCount / 3);
-      const lateConvertedHours = round2(lateAbsenceCount * absenceUnitHours);
-      const totalConvertedAbsenceHours = round2(absenceHours + lateConvertedHours);
-      const remainingSafeHours = round2(Math.max(0, denominator - A));
-
-      els.formulaName.textContent = formulaLabel;
-      els.attendanceRate.textContent = `${attendanceRate}%`;
-      els.convertedLateAbsence.textContent = `${lateAbsenceCount}회`;
-      els.totalConvertedAbsenceHours.textContent = `${formatNum(totalConvertedAbsenceHours)}시간`;
-      els.denominatorValue.textContent = `${formatNum(denominator)}시간`;
-      els.formulaText.textContent = `${formulaText}\n최종 출석률 = ${attendanceRate}%\n지각 ${lateCount}회 → 결석 ${lateAbsenceCount}회 환산\n결석 환산시간 = 결석시간 ${formatNum(absenceHours)} + 환산 ${formatNum(lateConvertedHours)} = ${formatNum(totalConvertedAbsenceHours)}시간\n분모 대비 남은 시간차 = ${formatNum(remainingSafeHours)}시간`;
-
-      let statusClass = "ok";
-      let statusText = `현재 계산 방식은 ${getModeLabel(mode)} 기준이다. 출석률은 ${attendanceRate}%다.`;
-
-      if (attendanceRate < warningThreshold) {
-        statusClass = "danger";
-        statusText = `경고: 출석률이 ${warningThreshold}% 미만이다. 현재 ${attendanceRate}%로 계산된다.`;
-      } else if (attendanceRate < warningThreshold + 5) {
-        statusClass = "warn";
-        statusText = `주의: 출석률이 기준선 근처다. 현재 ${attendanceRate}%다.`;
-      }
-
-      setStatus(statusClass, statusText);
-    }
-
     function setStatus(type, text) {
       els.statusBox.className = `status ${type}`;
       els.statusBox.textContent = text;
     }
 
-    function renderError(text) {
-      els.formulaName.textContent = "오류";
-      els.attendanceRate.textContent = "-";
-      els.convertedLateAbsence.textContent = "-";
-      els.totalConvertedAbsenceHours.textContent = "-";
-      els.denominatorValue.textContent = "-";
-      els.formulaText.textContent = text;
-      setStatus("danger", text);
+    function updateVisibleFields() {
+      const courseType = els.courseType.value;
+      const attendanceMode = els.attendanceMode.value;
+
+      els.totalTrainingDaysField.style.display = courseType === "longCourse" ? "block" : "none";
+      els.excludedHoursField.style.display = attendanceMode === "transfer" ? "block" : "none";
     }
 
-    function resetForm() {
-      els.mode.value = "general";
-      els.attendanceHours.value = 0;
-      els.totalHours.value = 0;
-      els.scheduledHours.value = 0;
-      els.excludedHours.value = 0;
-      els.absenceHours.value = 0;
-      els.lateCount.value = 0;
-      els.absenceUnitHours.value = 1;
-      els.warningThreshold.value = 80;
-      els.formulaName.textContent = "-";
-      els.attendanceRate.textContent = "-";
-      els.convertedLateAbsence.textContent = "-";
-      els.totalConvertedAbsenceHours.textContent = "-";
-      els.denominatorValue.textContent = "-";
-      els.formulaText.textContent = "-";
-      setStatus("warn", "값을 입력하고 계산하기를 누르면 결과가 나온다.");
-    }
+    function calculate() {
+      const courseType = els.courseType.value;
+      const attendanceMode = els.attendanceMode.value;
+      const totalHours = num(els.totalTrainingHours.value);
+      const totalDays = Math.floor(num(els.totalTrainingDays.value));
+      const excludedHours = num(els.excludedHours.value);
+      const absenceHours = Math.max(0, Math.floor(num(els.absenceHours.value)));
+      const absenceMinutes = Math.max(0, Math.floor(num(els.absenceMinutes.value)));
+      const absenceUnitHours = num(els.absenceUnitHours.value);
+      const warningThreshold = num(els.warningThreshold.value);
 
-    async function copyResult() {
-      const text = [
-        `[출결 계산 결과]`,
-        `계산 방식: ${els.formulaName.textContent}`,
-        `출석률: ${els.attendanceRate.textContent}`,
-        `지각 환산 결석횟수: ${els.convertedLateAbsence.textContent}`,
-        `총 결석 환산시간: ${els.totalConvertedAbsenceHours.textContent}`,
-        `사용된 분모: ${els.denominatorValue.textContent}`,
-        `상세 계산식:`,
-        `${els.formulaText.textContent}`,
-      ].join("\n");
+      const totalAbsenceHours = round2(absenceHours + (absenceMinutes / 60));
+      let attendanceRate = 0;
+      let isCompletable = false;
 
-      try {
-        await navigator.clipboard.writeText(text);
-        setStatus("ok", "결과를 클립보드에 복사했다.");
-      } catch (error) {
-        setStatus("warn", "복사는 실패했다. 브라우저 권한 문제일 수 있다.");
+      if (courseType === "shortCourse") {
+        let denominator = totalHours;
+        if (attendanceMode === "transfer") {
+          denominator = totalHours - excludedHours;
+        }
+
+        if (denominator <= 0) {
+          els.attendanceRate.textContent = "-";
+          els.completionResult.textContent = "계산 불가";
+          setStatus("danger", "총 훈련시간 또는 제외시간 값을 다시 확인해야 한다.");
+          return;
+        }
+
+        const attendedHours = Math.max(0, denominator - totalAbsenceHours);
+        attendanceRate = round2((attendedHours / denominator) * 100);
+      } else {
+        if (totalDays <= 0 || absenceUnitHours <= 0) {
+          els.attendanceRate.textContent = "-";
+          els.completionResult.textContent = "계산 불가";
+          setStatus("danger", "장기과정은 총 훈련일수와 결석 1회당 시간을 0보다 크게 넣어야 한다.");
+          return;
+        }
+
+        const absenceDays = totalAbsenceHours / absenceUnitHours;
+        const attendedDays = Math.max(0, totalDays - absenceDays);
+        attendanceRate = round2((attendedDays / totalDays) * 100);
+      }
+
+      isCompletable = attendanceRate >= warningThreshold;
+
+      els.attendanceRate.textContent = `${formatNum(attendanceRate)}%`;
+      els.completionResult.textContent = isCompletable ? "수료 가능" : "수료 불가";
+
+      if (attendanceRate < warningThreshold) {
+        setStatus("danger", `현재 출석률은 ${formatNum(attendanceRate)}%다. 기준 ${formatNum(warningThreshold)}% 미만이라 수료 불가로 표시했다.`);
+      } else if (attendanceRate < warningThreshold + 5) {
+        setStatus("warn", `현재 출석률은 ${formatNum(attendanceRate)}%다. 기준은 넘었지만 여유가 크지 않다.`);
+      } else {
+        setStatus("ok", `현재 출석률은 ${formatNum(attendanceRate)}%다. 기준 ${formatNum(warningThreshold)}% 이상이라 수료 가능으로 표시했다.`);
       }
     }
 
+    function resetForm() {
+      els.courseType.value = "shortCourse";
+      els.attendanceMode.value = "over40";
+      els.totalTrainingHours.value = 0;
+      els.totalTrainingDays.value = 0;
+      els.excludedHours.value = 0;
+      els.absenceHours.value = 0;
+      els.absenceMinutes.value = 0;
+      els.absenceUnitHours.value = 8;
+      els.warningThreshold.value = 80;
+      els.attendanceRate.textContent = "-";
+      els.completionResult.textContent = "-";
+      updateVisibleFields();
+      setStatus("warn", "값을 입력하고 계산하기를 누르면 결과가 나온다.");
+    }
+
+    els.courseType.addEventListener("change", updateVisibleFields);
+    els.attendanceMode.addEventListener("change", updateVisibleFields);
     els.calcBtn.addEventListener("click", calculate);
     els.resetBtn.addEventListener("click", resetForm);
-    els.copyBtn.addEventListener("click", copyResult);
+
+    updateVisibleFields();
   </script>
 </body>
 </html>
